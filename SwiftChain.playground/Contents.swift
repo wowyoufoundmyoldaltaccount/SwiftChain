@@ -9,16 +9,29 @@ class MyViewController : UIViewController {
     
     var coinChain = blockChain()
     
+    let walletBalance = UILabel()
+
+    
     override func loadView() {
         let view = UIView()
         view.backgroundColor = .white
         
         initUserInterface(destView: view)
         
+        coinChain.addGenesisBlock()
+        
+        coinChain.addBlock(newBlock: block(index: 1, dateCreated: "01/28/18", amountTransfered: 10, previousHash: coinChain.getLatestBlock().hash, destAddress: "\(coinChain.walletAddress)"))
+        
+        
+        refreshUI()
+        
         self.view = view
     }
     
     func initUserInterface(destView: UIView) {
+        
+        //Initial UI Setup
+        
         let walletOverviewView = UIView()
         walletOverviewView.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width*0.5, height: UIScreen.main.bounds.height * 0.653 * 0.275)
         walletOverviewView.backgroundColor = #colorLiteral(red: 0.3015184316, green: 1, blue: 0.3607719276, alpha: 0)
@@ -33,7 +46,7 @@ class MyViewController : UIViewController {
         
         walletTransactionsView.layer.shadowColor = UIColor.black.cgColor
         walletTransactionsView.layer.shadowOpacity = 0.05
-        walletTransactionsView.layer.shadowRadius = 15.0 //Here your control your blur
+        walletTransactionsView.layer.shadowRadius = 15.0
         
         let walletOverviewStatusLayerView = CAGradientLayer()
         walletOverviewStatusLayerView.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width*0.5, height: UIScreen.main.bounds.height * 0.653 * 0.3)
@@ -45,7 +58,6 @@ class MyViewController : UIViewController {
         walletTitleLabel.textAlignment = .center
         walletTitleLabel.font = UIFont(name: "Avenir-Heavy", size: 20)
         
-        let walletBalance = UILabel()
         walletBalance.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width*0.5, height: walletOverviewView.frame.height)
         walletBalance.text = "0.0 SXC"
         walletBalance.textColor = .white
@@ -85,6 +97,14 @@ class MyViewController : UIViewController {
         walletOverviewView.addSubview(walletBalanceLabel)
         walletOverviewView.addSubview(walletBalance)
     }
+    
+    func refreshUI() {
+        print("refreshing UI")
+        
+        print(coinChain.walletAddress)
+        
+        walletBalance.text = "\(coinChain.totalAmountBalance) SXC"
+    }
 }
 
 class block {
@@ -94,14 +114,16 @@ class block {
     var index = Int()
     var dateCreated = String()
     var amountTransfered = Int()
+    var destAddress = String()
     
-    init(index: Int, dateCreated: String, amountTransfered: Int, previousHash: String) {
-        addedString = "\(index)\(dateCreated)\(amountTransfered)\(previousHash)"
+    init(index: Int, dateCreated: String, amountTransfered: Int, previousHash: String, destAddress: String) {
+        addedString = "\(index)\(dateCreated)\(amountTransfered)\(previousHash)\(destAddress)"
         self.hash = calculateHash()
         self.previousHash = previousHash
         self.index = index
         self.dateCreated = dateCreated
         self.amountTransfered = amountTransfered
+        self.destAddress = destAddress
     }
     
     func calculateHash() -> String {
@@ -114,20 +136,62 @@ class block {
 
 class blockChain {
     //create genesis block
-    var chain = [block(index: 0, dateCreated: "01/27/2018", amountTransfered: 0, previousHash: "0")]
     
+    var totalAmountBalance = 0.0
+    var walletAddress = String()
+    var chain = [block(index: 0, dateCreated: "01/27/2018", amountTransfered: 0, previousHash: "0", destAddress: "")]
+
     init() {
         print("initialized")
+        walletAddress = randomString(length: 20)
+        chain = [block(index: 0, dateCreated: "01/27/2018", amountTransfered: 0, previousHash: "0", destAddress: walletAddress)]
+        totalAmountBalance = 0.0
     }
-
+    
+    
+    
     func getLatestBlock() -> block {
         return chain[Int(chain.count - 1)]
     }
+    
+    func addGenesisBlock() {
+        print("Genesis block created")
+        
+        print("Wallet address: \(walletAddress)")
+    }
 
     func addBlock(newBlock: block) {
+        
+        if newBlock.destAddress != "\(walletAddress)" {
+            print("sent to another wallet")
+            print("subtract from total value")
+            
+            print("New block address: \(newBlock.destAddress)")
+            
+            totalAmountBalance = Double(totalAmountBalance) - Double(newBlock.amountTransfered)
+        } else {
+            totalAmountBalance = Double(totalAmountBalance) + Double(newBlock.amountTransfered)
+        }
+        
         if newBlock.previousHash == getLatestBlock().hash {
             chain.append(newBlock)
         }
+    }
+    
+    func randomString(length: Int) -> String {
+        
+        let letters : NSString = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        let len = UInt32(letters.length)
+        
+        var randomString = ""
+        
+        for _ in 0 ..< length {
+            let rand = arc4random_uniform(len)
+            var nextChar = letters.character(at: Int(rand))
+            randomString += NSString(characters: &nextChar, length: 1) as String
+        }
+        
+        return randomString
     }
 }
 

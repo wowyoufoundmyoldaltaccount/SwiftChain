@@ -3,7 +3,7 @@
 import UIKit
 import PlaygroundSupport
 import Foundation
-import Security
+import MultipeerConnectivity
 
 class MyViewController : UIViewController {
     
@@ -11,6 +11,7 @@ class MyViewController : UIViewController {
     
     let walletBalance = UILabel()
 
+    let peerService = PeerManager()
     
     override func loadView() {
         let view = UIView()
@@ -20,10 +21,7 @@ class MyViewController : UIViewController {
         
         coinChain.addGenesisBlock()
         
-        coinChain.addBlock(newBlock: block(index: 1, dateCreated: "01/28/18", amountTransfered: 10, previousHash: coinChain.getLatestBlock().hash, destAddress: "\(coinChain.walletAddress)"))
-        
-        
-        refreshUI()
+        refreshUI(destView: view)
         
         self.view = view
     }
@@ -37,7 +35,7 @@ class MyViewController : UIViewController {
         walletOverviewView.backgroundColor = #colorLiteral(red: 0.3015184316, green: 1, blue: 0.3607719276, alpha: 0)
         
         let walletTransactionsView = UIView()
-        walletTransactionsView.frame = CGRect(x: 0, y: walletOverviewView.frame.height - 15, width: UIScreen.main.bounds.width*0.5 - 9, height: UIScreen.main.bounds.height * 0.653 - walletOverviewView.frame.height)
+        walletTransactionsView.frame = CGRect(x: 0, y: walletOverviewView.frame.height - 15, width: UIScreen.main.bounds.width*0.5 - 9, height: UIScreen.main.bounds.height * 0.653 - walletOverviewView.frame.height + 60)
         walletTransactionsView.backgroundColor = .white
         
         walletTransactionsView.layer.zPosition = 4
@@ -45,8 +43,8 @@ class MyViewController : UIViewController {
         walletTransactionsView.layer.cornerRadius = 30
         
         walletTransactionsView.layer.shadowColor = UIColor.black.cgColor
-        walletTransactionsView.layer.shadowOpacity = 0.05
-        walletTransactionsView.layer.shadowRadius = 15.0
+        walletTransactionsView.layer.shadowOpacity = 0.2
+        walletTransactionsView.layer.shadowRadius = 35.0
         
         let walletOverviewStatusLayerView = CAGradientLayer()
         walletOverviewStatusLayerView.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width*0.5, height: UIScreen.main.bounds.height * 0.653 * 0.3)
@@ -70,7 +68,11 @@ class MyViewController : UIViewController {
         walletBalanceLabel.textColor = .white
         walletBalanceLabel.textAlignment = .center
         walletBalanceLabel.font = UIFont(name: "Avenir-Heavy", size: 15)
-        walletBalanceLabel.layer.opacity = 0.6
+        walletBalanceLabel.layer.opacity = 0.5
+        
+        walletBalanceLabel.layer.shadowColor = UIColor.black.cgColor
+        walletBalanceLabel.layer.shadowOpacity = 0.3
+        walletBalanceLabel.layer.shadowRadius = 15.0
         
         let transactionsTitleLabel = UILabel()
         transactionsTitleLabel.frame = CGRect(x: 0, y: 10, width: UIScreen.main.bounds.width*0.5, height: 20)
@@ -83,9 +85,9 @@ class MyViewController : UIViewController {
         transactionsTitleLabel.layer.zPosition = 5
         
         
-        let color1 = UIColor(red:0.84, green:0.55, blue:0.91, alpha:1.0).cgColor
-        let color2 = UIColor(red:0.49, green:0.38, blue:0.99, alpha:1.0).cgColor
-        walletOverviewStatusLayerView.colors = [color1, color2]
+        let color1 = UIColor(red:0.96, green:0.31, blue:0.64, alpha:1.0).cgColor
+        let color2 = UIColor(red:1.00, green:0.46, blue:0.46, alpha:1.0).cgColor
+        walletOverviewStatusLayerView.colors = [color2, color1]
         
         walletOverviewStatusLayerView.locations = [0.0, 1.0]
         
@@ -98,12 +100,52 @@ class MyViewController : UIViewController {
         walletOverviewView.addSubview(walletBalance)
     }
     
-    func refreshUI() {
+    func refreshUI(destView: UIView) {
+        
+        let transactionCountText = UILabel()
+        transactionCountText.frame = CGRect(x: 0, y: 550, width: UIScreen.main.bounds.width*0.5, height: 40)
+        transactionCountText.text = "0 transactions found."
+        transactionCountText.textColor = #colorLiteral(red: 0.8235294118, green: 0.8392156863, blue: 0.8509803922, alpha: 1)
+        transactionCountText.textAlignment = .center
+        transactionCountText.font = UIFont(name: "Avenir-Black", size: 30)
+        transactionCountText.layer.zPosition = 6
+        
+        let addButton = UIButton()
+        addButton.frame = CGRect(x: 0, y: 610, width: UIScreen.main.bounds.width*0.5, height: 15)
+        addButton.setTitle("Make One!", for: .normal)
+        addButton.setTitleColor(.white, for: .normal)
+        addButton.contentHorizontalAlignment = .center
+        addButton.contentVerticalAlignment = .center
+        addButton.titleLabel?.font = UIFont(name: "Avenir-Heavy", size: 20)
+        addButton.layer.zPosition = 7
+        
+        let addButtonButton = CAGradientLayer()
+        addButtonButton.frame = CGRect(x: addButton.frame.midX - UIScreen.main.bounds.width*0.5*0.4 / 2, y: addButton.frame.midY - UIScreen.main.bounds.width*0.5*0.4/3.84/2, width: UIScreen.main.bounds.width*0.5*0.4, height: UIScreen.main.bounds.width*0.5*0.4/3.84)
+        
+        let color1 = UIColor(red:0.96, green:0.31, blue:0.64, alpha:1.0).cgColor
+        let color2 = UIColor(red:1.00, green:0.46, blue:0.46, alpha:1.0).cgColor
+        addButtonButton.colors = [color2, color1]
+        addButtonButton.locations = [0.0, 1.5]
+        
+        addButtonButton.zPosition = 6
+        addButtonButton.cornerRadius = 6.5
+        
+        addButtonButton.shadowColor = UIColor.black.cgColor
+        addButtonButton.shadowOpacity = 0.18
+        addButtonButton.shadowRadius = 15.0
+        
         print("refreshing UI")
         
         print(coinChain.walletAddress)
         
+        if coinChain.chain.count < 2 {
+            print("only genesis block exists in chain")
+        }
+        
         walletBalance.text = "\(coinChain.totalAmountBalance) SXC"
+        destView.addSubview(transactionCountText)
+        destView.addSubview(addButton)
+        destView.layer.addSublayer(addButtonButton)
     }
 }
 
@@ -195,5 +237,35 @@ class blockChain {
     }
 }
 
+class PeerManager: NSObject {
+    let serviceType = "example-color"
+    let peerId = MCPeerID(displayName: UIDevice.current.name)
+    let serviceAdvertiser: MCNearbyServiceAdvertiser
+    
+    override init() {
+        self.serviceAdvertiser = MCNearbyServiceAdvertiser(peer: peerId, discoveryInfo: nil, serviceType: serviceType)
+        super.init()
+        self.serviceAdvertiser.delegate = self as? MCNearbyServiceAdvertiserDelegate
+        self.serviceAdvertiser.startAdvertisingPeer()
+    }
+    
+    deinit {
+        self.serviceAdvertiser.stopAdvertisingPeer()
+    }
+}
+
+extension PeerManager {
+    
+    func advertiser(_ advertiser: MCNearbyServiceAdvertiser, didNotStartAdvertisingPeer error: Error) {
+        NSLog("%@", "didNotStartAdvertisingPeer: \(error)")
+    }
+    
+    func advertiser(_ advertiser: MCNearbyServiceAdvertiser, didReceiveInvitationFromPeer peerID: MCPeerID, withContext context: Data?, invitationHandler: @escaping (Bool, MCSession?) -> Void) {
+        NSLog("%@", "didReceiveInvitationFromPeer \(peerID)")
+    }
+    
+}
+
 // Present the view controller in the Live View window
+PlaygroundPage.current.needsIndefiniteExecution = true
 PlaygroundPage.current.liveView = MyViewController()

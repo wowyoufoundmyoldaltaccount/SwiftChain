@@ -15,6 +15,8 @@ class MyViewController : UIViewController, UITextFieldDelegate {
     
     let popupView = UIView()
     
+    var sessionWallet = wallet()
+    
     override func loadView() {
         let view = UIView()
         view.backgroundColor = .white
@@ -26,15 +28,25 @@ class MyViewController : UIViewController, UITextFieldDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        let date = Date()
+        let formatter = DateFormatter()
+        
+        formatter.dateFormat = "dd/MM/yyyy"
+        
+        let result = formatter.string(from: date)
+        
         initUserInterface(destView: view)
         
         coinChain.addGenesisBlock()
         
-        refreshUI(destView: view)
+        coinChain.newWallet(walletToAdd: sessionWallet)
         
-        //coinChain.pushNetwork(pushedBlockchain: coinChain)
         dump(coinChain)
+        
+        coinChain.addBlock(newBlock: block(index: coinChain.chain.count, dateCreated: "\(result)", amountTransfered: 100, previousHash: coinChain.chain[coinChain.chain.count - 1].hash, destAddress: sessionWallet.walletAddress))
+        refreshUI(destView: view)
     }
+    
     func initUserInterface(destView: UIView) {
         
         //Initial UI Setup
@@ -133,6 +145,10 @@ class MyViewController : UIViewController, UITextFieldDelegate {
         
         transactionsTitleLabel.layer.zPosition = 8
         
+        let tenButton = UIButton()
+        tenButton.frame = CGRect(x: 10, y: UIScreen.main.bounds.height*0.653 - 80, width: UIScreen.main.bounds.width*0.5*0.8*0.25 height: 20)
+        //tenButton.setTitle("10 SXC", for: .normal)
+        
         let addressTextField = UITextField()
         addressTextField.frame = CGRect(x: 0, y: 60, width: UIScreen.main.bounds.width*0.5 * 0.85, height: 40)
         addressTextField.center.x = self.view.center.x
@@ -150,9 +166,10 @@ class MyViewController : UIViewController, UITextFieldDelegate {
         
         addressTextField.layer.cornerRadius = 6.8
         
+        addressTextField.tag = 3
+        
         addressTextField.setLeftPaddingPoints(10)
         addressTextField.setRightPaddingPoints(10)
-        
         
         addressTextField.layer.shadowColor = UIColor.black.cgColor
         addressTextField.layer.shadowOpacity = 0.08
@@ -196,34 +213,56 @@ class MyViewController : UIViewController, UITextFieldDelegate {
     }
     
     func addNetworkLabels(popupViewDest: UIView) {
-        let networkObject = UserDefaults.standard.stringArray(forKey: "nodes")
+        let networkObject = coinChain.nodes
         var enumerator = 0
         
-        while enumerator != networkObject?.count {
-            let walletLabel = UILabel()
+        while enumerator != networkObject.count {
+            let walletLabel = UIButton()
             walletLabel.frame = CGRect(x: 0, y: Int(100 + 50 + enumerator * 30), width: Int(UIScreen.main.bounds.width*0.5), height: 30)
-            walletLabel.text = "\(networkObject![enumerator])"
-            walletLabel.font = UIFont(name: "Avenir-Heavy", size: 15)
-            walletLabel.textColor = #colorLiteral(red: 0.8235294118, green: 0.8392156863, blue: 0.8509803922, alpha: 1)
-            walletLabel.textAlignment = .center
+            walletLabel.setTitle("\(networkObject[enumerator].walletAddress)", for: .normal)
+            walletLabel.titleLabel?.font = UIFont(name: "Avenir-Heavy", size: 15)
+            walletLabel.setTitleColor(#colorLiteral(red: 0.8235294118, green: 0.8392156863, blue: 0.8509803922, alpha: 1), for: .normal)
+            walletLabel.titleLabel?.textAlignment = .center
+            
+            walletLabel.addTarget(self, action: #selector(putTextIntoField), for: .touchUpInside)
             
             popupViewDest.addSubview(walletLabel)
             
             enumerator += 1
         }
+        
+        if enumerator == networkObject.count {
+            let walletLabel = UILabel()
+            walletLabel.frame = CGRect(x: 0, y: Int(100 + 50 + enumerator * 30), width: Int(UIScreen.main.bounds.width*0.5), height: 30)
+            walletLabel.text = "Tap Address to Enter Into Field"
+            walletLabel.font = UIFont(name: "Avenir-Heavy", size: 15)
+            walletLabel.textColor = #colorLiteral(red: 0.8235294118, green: 0.8392156863, blue: 0.8509803922, alpha: 1)
+            walletLabel.textAlignment = .center
+            
+            popupViewDest.addSubview(walletLabel)
+        }
+    }
+    
+    @objc func putTextIntoField(sender: UIButton) {
+        let textField = view.viewWithTag(3) as! UITextField
+        textField.text = sender.titleLabel?.text
     }
     
     func refreshUI(destView: UIView) {
         
         let walletAddressLabel = UILabel()
         walletAddressLabel.frame = CGRect(x: 0, y: 620, width: UIScreen.main.bounds.width*0.5, height: 25)
-        walletAddressLabel.text = "Wallet Address: \(coinChain.walletAddress)"
+        walletAddressLabel.text = "Wallet Address: \(sessionWallet.walletAddress)"
         walletAddressLabel.textColor = .white
         walletAddressLabel.textAlignment = .center
         walletAddressLabel.font = UIFont(name: "Avenir-Heavy", size: 20)
         
         let walletAddressBackground = CAGradientLayer()
         walletAddressBackground.frame = CGRect(x: walletAddressLabel.frame.midX - UIScreen.main.bounds.width*0.5*0.9 / 2, y: walletAddressLabel.frame.midY - UIScreen.main.bounds.width*0.5*0.4/3.84/2, width: UIScreen.main.bounds.width*0.5*0.9, height: UIScreen.main.bounds.width*0.5*0.4/3.84)
+        
+        print(sessionWallet.balance)
+        
+        walletBalance.text = "\(sessionWallet.balance) SXC"
         
         let color3 = UIColor(red:0.96, green:0.31, blue:0.64, alpha:1.0).cgColor
         let color4 = UIColor(red:1.00, green:0.46, blue:0.46, alpha:1.0).cgColor
@@ -276,13 +315,10 @@ class MyViewController : UIViewController, UITextFieldDelegate {
         
         print("refreshing UI")
         
-        print(coinChain.walletAddress)
-        
         if coinChain.chain.count < 2 {
             print("only genesis block exists in chain")
         }
         
-        walletBalance.text = "\(coinChain.totalAmountBalance) SXC"
         destView.addSubview(walletAddressLabel)
         destView.layer.addSublayer(walletAddressBackground)
         destView.addSubview(transactionCountText)
@@ -337,7 +373,7 @@ class blockChain {
     var totalAmountBalance = 0.0
     var walletAddress = String()
     var chain = [block(index: 0, dateCreated: "01/27/2018", amountTransfered: 0, previousHash: "0", destAddress: "")]
-    var nodes = [String()]
+    var nodes = [wallet()]
 
     init() {
         print("initialized")
@@ -345,7 +381,6 @@ class blockChain {
         chain = [block(index: 0, dateCreated: "01/27/2018", amountTransfered: 0, previousHash: "0", destAddress: walletAddress)]
         totalAmountBalance = 0.0
     }
-    
     
     
     func getLatestBlock() -> block {
@@ -359,33 +394,60 @@ class blockChain {
     }
 
     func addBlock(newBlock: block) {
+        findWallet(withAddress: newBlock.destAddress).balance += Double(newBlock.amountTransfered)
         
-        if newBlock.destAddress != "\(walletAddress)" {
-            print("sent to another wallet")
-            print("subtract from total value")
-            
-            print("New block address: \(newBlock.destAddress)")
-            
-            totalAmountBalance = Double(totalAmountBalance) - Double(newBlock.amountTransfered)
-        } else {
-            totalAmountBalance = Double(totalAmountBalance) + Double(newBlock.amountTransfered)
-        }
+        print(findWallet(withAddress: newBlock.destAddress).balance)
         
         if newBlock.previousHash == getLatestBlock().hash {
             chain.append(newBlock)
         }
     }
     
-    func pushNetwork(pushedBlockchain: blockChain) {
-        if isKeyPresentInUserDefaults(key: "networkBlockchain") {
-            var networkObject = UserDefaults.standard.object(forKey: "networkBlockchain") as! blockChain
-        } else {
-            UserDefaults.standard.setValue(pushedBlockchain, forKey: "networkBlockchain")
+    func findWallet(withAddress: String) -> wallet{
+        var x = 0
+        var destWalletRef = wallet()
+        while x != nodes.count {
+            if nodes[x].walletAddress == withAddress {
+                destWalletRef = nodes[x]
+                x = nodes.count + 1
+                break
+            }
+            x+=1
         }
+        return destWalletRef
+    }
+    
+    func newWallet(walletToAdd: wallet) {
+        nodes.append(walletToAdd)
     }
     
     func isKeyPresentInUserDefaults(key: String) -> Bool {
         return UserDefaults.standard.object(forKey:key) != nil
+    }
+    
+    func randomString(length: Int) -> String {
+        
+        let letters : NSString = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        let len = UInt32(letters.length)
+        
+        var randomString = ""
+        
+        for _ in 0 ..< length {
+            let rand = arc4random_uniform(len)
+            var nextChar = letters.character(at: Int(rand))
+            randomString += NSString(characters: &nextChar, length: 1) as String
+        }
+        
+        return randomString
+    }
+}
+
+class wallet {
+    var balance = 0.0
+    var walletAddress = ""
+    init() {
+        balance = 0.0
+        walletAddress = randomString(length: 13)
     }
     
     func randomString(length: Int) -> String {
@@ -452,5 +514,7 @@ extension PeerManager {
 }
 
 // Present the view controller in the Live View window
+
+let vc = MyViewController()
 PlaygroundPage.current.needsIndefiniteExecution = true
-PlaygroundPage.current.liveView = MyViewController()
+PlaygroundPage.current.liveView = vc

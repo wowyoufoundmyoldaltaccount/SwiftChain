@@ -17,13 +17,22 @@ class MyViewController : UIViewController, UITextFieldDelegate {
     
     var sessionWallet = wallet()
     
+    var newTransaction = block()
+    
+    var newTransactionAmount = Int()
+    
+    var newTransactionDestAddress = String()
+    
+    let addressTextField = UITextField()
+    
+    let transactionAmountLabel = UILabel()
+    
     override func loadView() {
         let view = UIView()
         view.backgroundColor = .white
         
         self.view = view
     }
-    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -41,10 +50,10 @@ class MyViewController : UIViewController, UITextFieldDelegate {
         
         coinChain.newWallet(walletToAdd: sessionWallet)
         
-        dump(coinChain)
-        
-        coinChain.addBlock(newBlock: block(index: coinChain.chain.count, dateCreated: "\(result)", amountTransfered: 100, previousHash: coinChain.chain[coinChain.chain.count - 1].hash, destAddress: sessionWallet.walletAddress))
+        coinChain.addBlock(newBlock: block(index: coinChain.chain.count, dateCreated: "\(result)", amountTransfered: 100, previousHash: coinChain.chain[coinChain.chain.count - 1].hash, destAddress: sessionWallet.walletAddress, sendingAddress: ""))
         refreshUI(destView: view)
+        
+        initTransactionView()
     }
     
     func initUserInterface(destView: UIView) {
@@ -121,7 +130,7 @@ class MyViewController : UIViewController, UITextFieldDelegate {
         walletOverviewView.addSubview(walletBalance)
     }
     
-    @objc func presentTransactionView() {
+    @objc func initTransactionView() {
         let destinationView = view
         
         popupView.frame = CGRect(x: 0, y: UIScreen.main.bounds.maxY + 40, width: UIScreen.main.bounds.width*0.5 - 9, height: UIScreen.main.bounds.height * 0.653)
@@ -145,13 +154,136 @@ class MyViewController : UIViewController, UITextFieldDelegate {
         
         transactionsTitleLabel.layer.zPosition = 8
         
-        let tenButton = UIButton()
-        tenButton.frame = CGRect(x: 10, y: UIScreen.main.bounds.height*0.653 - 80, width: UIScreen.main.bounds.width*0.5*0.8*0.25 height: 20)
-        //tenButton.setTitle("10 SXC", for: .normal)
+        transactionAmountLabel.frame = CGRect(x: 0, y: popupView.frame.midY, width: UIScreen.main.bounds.width*0.5, height: 40)
+        transactionAmountLabel.text = "\(newTransactionAmount) SXC"
+        transactionAmountLabel.font = UIFont(name: "Avenir-Heavy", size: 35)
+        transactionAmountLabel.textAlignment = .center
+        transactionAmountLabel.layer.opacity = 1
+        transactionAmountLabel.textColor = UIColor(red: 0.96, green: 0.31, blue: 0.64, alpha: 0.7)
+        transactionAmountLabel.layer.zPosition = 9
         
-        let addressTextField = UITextField()
-        addressTextField.frame = CGRect(x: 0, y: 60, width: UIScreen.main.bounds.width*0.5 * 0.85, height: 40)
-        addressTextField.center.x = self.view.center.x
+        let tenButton = UIButton()
+        tenButton.frame = CGRect(x: 10, y: UIScreen.main.bounds.height*0.653 - 110, width: UIScreen.main.bounds.width*0.5*0.8*0.25, height: 20)
+        tenButton.setTitle("10 SXC", for: .normal)
+        tenButton.setTitleColor(.white, for: .normal)
+        tenButton.titleLabel?.font = UIFont(name: "Avenir-Heavy", size: 20)
+        tenButton.titleLabel?.textAlignment = .center
+        
+        tenButton.layer.zPosition = 7
+        
+        let tenButtonBackground =  CAGradientLayer()
+        tenButtonBackground.frame = CGRect(x: 5, y: UIScreen.main.bounds.height*0.653 - 110 - 5, width: UIScreen.main.bounds.width*0.5*0.8*0.25 + 10, height: 30)
+        
+        let color3 = UIColor(red:0.96, green:0.31, blue:0.64, alpha:1.0).cgColor
+        let color4 = UIColor(red:1.00, green:0.46, blue:0.46, alpha:1.0).cgColor
+        tenButtonBackground.colors = [color4, color3]
+        tenButtonBackground.locations = [0.0, 1.5]
+        
+        tenButtonBackground.zPosition = 6
+        tenButtonBackground.cornerRadius = 6.5
+        
+        tenButtonBackground.shadowColor = UIColor.black.cgColor
+        tenButtonBackground.shadowOpacity = 0.2
+        tenButtonBackground.shadowRadius = 15.0
+        
+        
+        let twentyButton = UIButton()
+        twentyButton.frame = CGRect(x: tenButton.frame.maxX + 15, y: UIScreen.main.bounds.height*0.653 - 110, width: UIScreen.main.bounds.width*0.5*0.8*0.25, height: 20)
+        twentyButton.setTitle("20 SXC", for: .normal)
+        twentyButton.setTitleColor(.white, for: .normal)
+        twentyButton.titleLabel?.font = UIFont(name: "Avenir-Heavy", size: 20)
+        twentyButton.titleLabel?.textAlignment = .center
+        
+        twentyButton.layer.zPosition = 8
+        
+        let twentyButtonBackground =  CAGradientLayer()
+        twentyButtonBackground.frame = CGRect(x: twentyButton.frame.minX  - 5, y: UIScreen.main.bounds.height*0.653 - 110 - 5, width: UIScreen.main.bounds.width*0.5*0.8*0.25 + 10, height: 30)
+        
+        twentyButtonBackground.colors = [color4, color3]
+        twentyButtonBackground.locations = [0.0, 1.5]
+        
+        twentyButtonBackground.zPosition = 6
+        twentyButtonBackground.cornerRadius = 6.5
+        
+        twentyButtonBackground.shadowColor = UIColor.black.cgColor
+        twentyButtonBackground.shadowOpacity = 0.2
+        twentyButtonBackground.shadowRadius = 15.0
+        
+        let thirtyButton = UIButton()
+        thirtyButton.frame = CGRect(x: UIScreen.main.bounds.width*0.5 - UIScreen.main.bounds.width*0.5*0.8*0.25 - 20 - UIScreen.main.bounds.width*0.5*0.8*0.25 - 20 + 5, y: UIScreen.main.bounds.height*0.653 - 110, width: UIScreen.main.bounds.width*0.5*0.8*0.25, height: 20)
+        thirtyButton.setTitle("30 SXC", for: .normal)
+        thirtyButton.setTitleColor(.white, for: .normal)
+        thirtyButton.titleLabel?.font = UIFont(name: "Avenir-Heavy", size: 20)
+        thirtyButton.titleLabel?.textAlignment = .center
+        
+        thirtyButton.layer.zPosition = 8
+        
+        let thirtyButtonBackground =  CAGradientLayer()
+        thirtyButtonBackground.frame = CGRect(x: thirtyButton.frame.minX  - 5, y: UIScreen.main.bounds.height*0.653 - 110 - 5, width: UIScreen.main.bounds.width*0.5*0.8*0.25 + 10, height: 30)
+        
+        thirtyButtonBackground.colors = [color4, color3]
+        thirtyButtonBackground.locations = [0.0, 1.5]
+        
+        thirtyButtonBackground.zPosition = 6
+        thirtyButtonBackground.cornerRadius = 6.5
+        
+        thirtyButtonBackground.shadowColor = UIColor.black.cgColor
+        thirtyButtonBackground.shadowOpacity = 0.2
+        thirtyButtonBackground.shadowRadius = 15.0
+        
+        let fiftyButton = UIButton()
+        fiftyButton.frame = CGRect(x: UIScreen.main.bounds.width*0.5 - UIScreen.main.bounds.width*0.5*0.8*0.25 - 20, y: UIScreen.main.bounds.height*0.653 - 110, width: UIScreen.main.bounds.width*0.5*0.8*0.25, height: 20)
+        fiftyButton.setTitle("50 SXC", for: .normal)
+        fiftyButton.setTitleColor(.white, for: .normal)
+        fiftyButton.titleLabel?.font = UIFont(name: "Avenir-Heavy", size: 20)
+        fiftyButton.titleLabel?.textAlignment = .center
+        
+        fiftyButton.layer.zPosition = 8
+        
+        let fiftyButtonBackground =  CAGradientLayer()
+        fiftyButtonBackground.frame = CGRect(x: fiftyButton.frame.minX  - 5, y: UIScreen.main.bounds.height*0.653 - 110 - 5, width: UIScreen.main.bounds.width*0.5*0.8*0.25 + 10, height: 30)
+        
+        fiftyButtonBackground.colors = [color4, color3]
+        fiftyButtonBackground.locations = [0.0, 1.5]
+        
+        fiftyButtonBackground.zPosition = 6
+        fiftyButtonBackground.cornerRadius = 6.5
+        
+        fiftyButtonBackground.shadowColor = UIColor.black.cgColor
+        fiftyButtonBackground.shadowOpacity = 0.2
+        fiftyButtonBackground.shadowRadius = 15.0
+        
+        let doneButton = UIButton()
+        doneButton.frame = CGRect(x: 0, y: UIScreen.main.bounds.height*0.653 - 80, width: UIScreen.main.bounds.width * 0.5, height: 35)
+        doneButton.setTitle("Done", for: .normal)
+        doneButton.setTitleColor(.white, for: .normal)
+        doneButton.titleLabel?.font = UIFont(name: "Avenir-Heavy", size: 20)
+        doneButton.titleLabel?.textAlignment = .center
+        
+        doneButton.layer.zPosition = 8
+        
+        tenButton.addTarget(self, action: #selector(setTransactionAmountTen), for: .touchUpInside)
+        twentyButton.addTarget(self, action: #selector(setTransactionAmountTwenty), for: .touchUpInside)
+        thirtyButton.addTarget(self, action: #selector(setTransactionAmountThirty), for: .touchUpInside)
+        fiftyButton.addTarget(self, action: #selector(setTransactionAmountFifty), for: .touchUpInside)
+        
+        doneButton.addTarget(self, action: #selector(createTransaction), for: .touchUpInside)
+        
+        let doneButtonBackground =  CAGradientLayer()
+        doneButtonBackground.frame = CGRect(x: tenButtonBackground.frame.minX, y: UIScreen.main.bounds.height*0.653 - 80, width: UIScreen.main.bounds.width*0.5 - tenButtonBackground.frame.minX*4, height: 35)
+        
+        doneButtonBackground.colors = [color4, color3]
+        doneButtonBackground.locations = [0.0, 1.5]
+        
+        doneButtonBackground.zPosition = 6
+        doneButtonBackground.cornerRadius = 6.5
+        
+        doneButtonBackground.shadowColor = UIColor.black.cgColor
+        doneButtonBackground.shadowOpacity = 0.2
+        doneButtonBackground.shadowRadius = 15.0
+        
+        addressTextField.frame = CGRect(x: 57.6/2, y: 60, width: UIScreen.main.bounds.width*0.5 * 0.85, height: 40)
+        addressTextField.center.x = popupView.center.x
         addressTextField.placeholder = "Wallet Address"
         addressTextField.font = UIFont(name: "Avenir-Heavy", size: 15)
         addressTextField.borderStyle = .none
@@ -163,6 +295,7 @@ class MyViewController : UIViewController, UITextFieldDelegate {
         addressTextField.delegate = self
         addressTextField.backgroundColor = .white
         addressTextField.tintColor = .gray
+        addressTextField.textColor = .gray
         
         addressTextField.layer.cornerRadius = 6.8
         
@@ -198,18 +331,82 @@ class MyViewController : UIViewController, UITextFieldDelegate {
         popupView.addSubview(closeButton)
         popupView.addSubview(addressTextField)
         popupView.addSubview(avaliableWalletAddressesTitle)
+        popupView.addSubview(tenButton)
+        popupView.addSubview(twentyButton)
+        popupView.addSubview(thirtyButton)
+        popupView.addSubview(fiftyButton)
+        popupView.addSubview(doneButton)
+        popupView.addSubview(transactionAmountLabel)
+        popupView.layer.addSublayer(tenButtonBackground)
+        popupView.layer.addSublayer(twentyButtonBackground)
+        popupView.layer.addSublayer(thirtyButtonBackground)
+        popupView.layer.addSublayer(fiftyButtonBackground)
+        popupView.layer.addSublayer(doneButtonBackground)
         
         addNetworkLabels(popupViewDest: popupView)
-        
+    }
+
+    @objc func bringPopupViewToForeground() {
+        newTransactionAmount = 0
         UIView.animate(withDuration: 0.4, animations: {
             self.popupView.frame.origin.y = 30
         }, completion: nil)
     }
+
+    @objc func createTransaction() {
+        newTransaction = block(index: coinChain.chain.count, dateCreated: "2/12/2018", amountTransfered: newTransactionAmount, previousHash: coinChain.chain[coinChain.chain.count - 1].hash, destAddress: addressTextField.text!, sendingAddress: sessionWallet.walletAddress)
+        
+        if Double(newTransactionAmount) <= sessionWallet.balance {
+            if addressTextField.text! != sessionWallet.walletAddress {
+                coinChain.addBlock(newBlock: newTransaction)
+                refreshUI(destView: view)
+                closePopupView()
+            } else {
+                presentTransactionError()
+            }
+        } else {
+            presentInsufficientFunds()
+        }
+    }
+    
+    @objc func setTransactionAmountTen() {
+        newTransactionAmount += 10
+        transactionAmountLabel.text = "\(newTransactionAmount)"
+    }
+    
+    @objc func setTransactionAmountTwenty() {
+        newTransactionAmount += 20
+        transactionAmountLabel.text = "\(newTransactionAmount)"
+    }
+    
+    @objc func setTransactionAmountThirty() {
+        newTransactionAmount += 30
+        transactionAmountLabel.text = "\(newTransactionAmount)"
+    }
+    
+    @objc func setTransactionAmountFifty() {
+        newTransactionAmount += 50
+        transactionAmountLabel.text = "\(newTransactionAmount)"
+    }
     
     @objc func closePopupView() {
+        dump(coinChain.chain)
         UIView.animate(withDuration: 0.4, animations: {
             self.popupView.frame.origin.y = 700
         }, completion: nil)
+    }
+    
+    func presentTransactionError() {
+        let alert = UIAlertController(title: "Error", message: "Tokens cannot be sent to the sending wallet from the sending wallet.", preferredStyle: UIAlertControllerStyle.alert)
+        alert.addAction(UIAlertAction(title: "Done", style: UIAlertActionStyle.default, handler: nil))
+        self.present(alert, animated: true, completion: nil)
+    }
+    
+    func presentInsufficientFunds() {
+        let alert = UIAlertController(title: "Error", message: "Insufficient funds.", preferredStyle: UIAlertControllerStyle.alert)
+        alert.addAction(UIAlertAction(title: "Done", style: UIAlertActionStyle.default, handler: nil))
+        self.present(alert, animated: true, completion: nil)
+        closePopupView()
     }
     
     func addNetworkLabels(popupViewDest: UIView) {
@@ -249,40 +446,7 @@ class MyViewController : UIViewController, UITextFieldDelegate {
     }
     
     func refreshUI(destView: UIView) {
-        
-        let walletAddressLabel = UILabel()
-        walletAddressLabel.frame = CGRect(x: 0, y: 620, width: UIScreen.main.bounds.width*0.5, height: 25)
-        walletAddressLabel.text = "Wallet Address: \(sessionWallet.walletAddress)"
-        walletAddressLabel.textColor = .white
-        walletAddressLabel.textAlignment = .center
-        walletAddressLabel.font = UIFont(name: "Avenir-Heavy", size: 20)
-        
-        let walletAddressBackground = CAGradientLayer()
-        walletAddressBackground.frame = CGRect(x: walletAddressLabel.frame.midX - UIScreen.main.bounds.width*0.5*0.9 / 2, y: walletAddressLabel.frame.midY - UIScreen.main.bounds.width*0.5*0.4/3.84/2, width: UIScreen.main.bounds.width*0.5*0.9, height: UIScreen.main.bounds.width*0.5*0.4/3.84)
-        
-        print(sessionWallet.balance)
-        
         walletBalance.text = "\(sessionWallet.balance) SXC"
-        
-        let color3 = UIColor(red:0.96, green:0.31, blue:0.64, alpha:1.0).cgColor
-        let color4 = UIColor(red:1.00, green:0.46, blue:0.46, alpha:1.0).cgColor
-        walletAddressBackground.colors = [color4, color3]
-        walletAddressBackground.locations = [0.0, 1.5]
-        
-        walletAddressBackground.zPosition = 6
-        walletAddressBackground.cornerRadius = 6.5
-        
-        walletAddressBackground.shadowColor = UIColor.black.cgColor
-        walletAddressBackground.shadowOpacity = 0.2
-        walletAddressBackground.shadowRadius = 15.0
-        
-        let transactionCountText = UILabel()
-        transactionCountText.frame = CGRect(x: 0, y: 200, width: UIScreen.main.bounds.width*0.5, height: 40)
-        transactionCountText.text = "0 transactions found."
-        transactionCountText.textColor = #colorLiteral(red: 0.8235294118, green: 0.8392156863, blue: 0.8509803922, alpha: 1)
-        transactionCountText.textAlignment = .center
-        transactionCountText.font = UIFont(name: "Avenir-Black", size: 30)
-        transactionCountText.layer.zPosition = 6
         
         let addButton = UIButton()
         addButton.frame = CGRect(x: 0, y: 260, width: UIScreen.main.bounds.width*0.5, height: 20)
@@ -293,7 +457,7 @@ class MyViewController : UIViewController, UITextFieldDelegate {
         addButton.titleLabel?.font = UIFont(name: "Avenir-Heavy", size: 20)
         addButton.layer.zPosition = 7
         
-        addButton.addTarget(self, action: #selector(presentTransactionView), for: .touchUpInside)
+        addButton.addTarget(self, action: #selector(bringPopupViewToForeground), for: .touchUpInside)
         
         let addButtonButton = CAGradientLayer()
         addButtonButton.frame = CGRect(x: addButton.frame.midX - UIScreen.main.bounds.width*0.5*0.4 / 2, y: addButton.frame.midY - UIScreen.main.bounds.width*0.5*0.4/3.84/2, width: UIScreen.main.bounds.width*0.5*0.4, height: UIScreen.main.bounds.width*0.5*0.4/3.84)
@@ -307,21 +471,21 @@ class MyViewController : UIViewController, UITextFieldDelegate {
         addButtonButton.cornerRadius = 6.5
         
         addButtonButton.shadowColor = UIColor.black.cgColor
-        addButtonButton.shadowOpacity = 0.18
-        addButtonButton.shadowRadius = 15.0
-        
-        walletAddressLabel.layer.zPosition = 7
-        walletAddressBackground.zPosition = 6
         
         print("refreshing UI")
         
-        if coinChain.chain.count < 2 {
-            print("only genesis block exists in chain")
+        if coinChain.chain.count < 3 {
+            let transactionCountText = UILabel()
+            transactionCountText.frame = CGRect(x: 0, y: 200, width: UIScreen.main.bounds.width*0.5, height: 40)
+            transactionCountText.text = "0 transactions found."
+            transactionCountText.textColor = #colorLiteral(red: 0.8235294118, green: 0.8392156863, blue: 0.8509803922, alpha: 1)
+            transactionCountText.textAlignment = .center
+            transactionCountText.font = UIFont(name: "Avenir-Black", size: 30)
+            transactionCountText.layer.zPosition = 6
+            
+            destView.addSubview(transactionCountText)
         }
-        
-        destView.addSubview(walletAddressLabel)
-        destView.layer.addSublayer(walletAddressBackground)
-        destView.addSubview(transactionCountText)
+
         destView.addSubview(addButton)
         destView.layer.addSublayer(addButtonButton)
     }
@@ -348,8 +512,9 @@ class block {
     var dateCreated = String()
     var amountTransfered = Int()
     var destAddress = String()
+    var sendingAddress = String()
     
-    init(index: Int, dateCreated: String, amountTransfered: Int, previousHash: String, destAddress: String) {
+    init(index: Int, dateCreated: String, amountTransfered: Int, previousHash: String, destAddress: String, sendingAddress: String) {
         addedString = "\(index)\(dateCreated)\(amountTransfered)\(previousHash)\(destAddress)"
         self.hash = calculateHash()
         self.previousHash = previousHash
@@ -357,6 +522,11 @@ class block {
         self.dateCreated = dateCreated
         self.amountTransfered = amountTransfered
         self.destAddress = destAddress
+        self.sendingAddress = sendingAddress
+    }
+    
+    init() {
+        
     }
     
     func calculateHash() -> String {
@@ -372,13 +542,13 @@ class blockChain {
     
     var totalAmountBalance = 0.0
     var walletAddress = String()
-    var chain = [block(index: 0, dateCreated: "01/27/2018", amountTransfered: 0, previousHash: "0", destAddress: "")]
+    var chain = [block(index: 0, dateCreated: "01/27/2018", amountTransfered: 0, previousHash: "0", destAddress: "", sendingAddress: "")]
     var nodes = [wallet()]
 
     init() {
         print("initialized")
         walletAddress = randomString(length: 13)
-        chain = [block(index: 0, dateCreated: "01/27/2018", amountTransfered: 0, previousHash: "0", destAddress: walletAddress)]
+        chain = [block(index: 0, dateCreated: "01/27/2018", amountTransfered: 0, previousHash: "0", destAddress: walletAddress, sendingAddress: "")]
         totalAmountBalance = 0.0
     }
     
@@ -394,12 +564,11 @@ class blockChain {
     }
 
     func addBlock(newBlock: block) {
-        findWallet(withAddress: newBlock.destAddress).balance += Double(newBlock.amountTransfered)
-        
-        print(findWallet(withAddress: newBlock.destAddress).balance)
-        
         if newBlock.previousHash == getLatestBlock().hash {
             chain.append(newBlock)
+            findWallet(withAddress: newBlock.destAddress).balance += Double(newBlock.amountTransfered)
+            
+            findWallet(withAddress: newBlock.sendingAddress).balance -= Double(newBlock.amountTransfered)
         }
     }
     

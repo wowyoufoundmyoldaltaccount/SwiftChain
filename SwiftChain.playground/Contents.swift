@@ -33,6 +33,20 @@ class MyViewController : UIViewController, UITextFieldDelegate {
     
     let addButtonButton = CAGradientLayer()
     
+    let transactionsTitleLabel = UILabel()
+    
+    let tenButtonBackground =  CAGradientLayer()
+    
+    let plusAddButton = UIButton()
+    
+    let color3 = UIColor(red:0.96, green:0.31, blue:0.64, alpha:1.0).cgColor
+    let color4 = UIColor(red:1.00, green:0.46, blue:0.46, alpha:1.0).cgColor
+    
+    let fiftyButton = UIButton()
+    let tenButton = UIButton()
+    
+    let doneButtonBackground =  CAGradientLayer()
+    
     override func loadView() {
         let view = UIView()
         view.backgroundColor = .white
@@ -60,6 +74,7 @@ class MyViewController : UIViewController, UITextFieldDelegate {
         refreshUI(destView: view)
         
         initTransactionView()
+        addButtons()
     }
     
     func initUserInterface(destView: UIView) {
@@ -110,7 +125,6 @@ class MyViewController : UIViewController, UITextFieldDelegate {
         walletBalanceLabel.layer.shadowOpacity = 0.3
         walletBalanceLabel.layer.shadowRadius = 15.0
         
-        let transactionsTitleLabel = UILabel()
         transactionsTitleLabel.frame = CGRect(x: 0, y: 10, width: UIScreen.main.bounds.width*0.5, height: 20)
         transactionsTitleLabel.text = "Transactions"
         transactionsTitleLabel.textColor = #colorLiteral(red: 0.8235294118, green: 0.8392156863, blue: 0.8509803922, alpha: 1)
@@ -136,39 +150,7 @@ class MyViewController : UIViewController, UITextFieldDelegate {
         walletOverviewView.addSubview(walletBalance)
     }
     
-    @objc func initTransactionView() {
-        let destinationView = view
-        
-        popupView.frame = CGRect(x: 0, y: UIScreen.main.bounds.maxY + 40, width: UIScreen.main.bounds.width*0.5 - 9, height: UIScreen.main.bounds.height * 0.653)
-        popupView.backgroundColor = .white
-        
-        popupView.layer.zPosition = 7
-        
-        popupView.layer.cornerRadius = 30
-        
-        popupView.layer.shadowColor = UIColor.black.cgColor
-        popupView.layer.shadowOpacity = 0.5
-        popupView.layer.shadowRadius = 80.0
-        
-        let transactionsTitleLabel = UILabel()
-        transactionsTitleLabel.frame = CGRect(x: 0, y: 10, width: UIScreen.main.bounds.width*0.5, height: 20)
-        transactionsTitleLabel.text = "Create Transaction"
-        transactionsTitleLabel.textColor = #colorLiteral(red: 0.8235294118, green: 0.8392156863, blue: 0.8509803922, alpha: 1)
-        transactionsTitleLabel.textAlignment = .center
-        transactionsTitleLabel.font = UIFont(name: "Avenir-Heavy", size: 20)
-        transactionsTitleLabel.layer.opacity = 1
-        
-        transactionsTitleLabel.layer.zPosition = 8
-        
-        transactionAmountLabel.frame = CGRect(x: 0, y: 300, width: UIScreen.main.bounds.width*0.5, height: 40)
-        transactionAmountLabel.text = "\(newTransactionAmount) SXC"
-        transactionAmountLabel.font = UIFont(name: "Avenir-Heavy", size: 50)
-        transactionAmountLabel.textAlignment = .center
-        transactionAmountLabel.layer.opacity = 1
-        transactionAmountLabel.textColor = UIColor(red:1.00, green:0.46, blue:0.46, alpha:0.7)
-        transactionAmountLabel.layer.zPosition = 9
-        
-        let tenButton = UIButton()
+    @objc func addButtons() {
         tenButton.frame = CGRect(x: 10, y: UIScreen.main.bounds.height*0.653 - 110, width: UIScreen.main.bounds.width*0.5*0.8*0.25, height: 20)
         tenButton.setTitle("10 SXC", for: .normal)
         tenButton.setTitleColor(.white, for: .normal)
@@ -177,7 +159,6 @@ class MyViewController : UIViewController, UITextFieldDelegate {
         
         tenButton.layer.zPosition = 7
         
-        let tenButtonBackground =  CAGradientLayer()
         tenButtonBackground.frame = CGRect(x: 5, y: UIScreen.main.bounds.height*0.653 - 110 - 5, width: UIScreen.main.bounds.width*0.5*0.8*0.25 + 10, height: 30)
         
         let color3 = UIColor(red:0.96, green:0.31, blue:0.64, alpha:1.0).cgColor
@@ -237,7 +218,6 @@ class MyViewController : UIViewController, UITextFieldDelegate {
         thirtyButtonBackground.shadowOpacity = 0.2
         thirtyButtonBackground.shadowRadius = 15.0
         
-        let fiftyButton = UIButton()
         fiftyButton.frame = CGRect(x: UIScreen.main.bounds.width*0.5 - UIScreen.main.bounds.width*0.5*0.8*0.25 - 20, y: UIScreen.main.bounds.height*0.653 - 110, width: UIScreen.main.bounds.width*0.5*0.8*0.25, height: 20)
         fiftyButton.setTitle("50 SXC", for: .normal)
         fiftyButton.setTitleColor(.white, for: .normal)
@@ -259,6 +239,54 @@ class MyViewController : UIViewController, UITextFieldDelegate {
         fiftyButtonBackground.shadowOpacity = 0.2
         fiftyButtonBackground.shadowRadius = 15.0
         
+        tenButton.addTarget(self, action: #selector(setTransactionAmountTen), for: .touchUpInside)
+        twentyButton.addTarget(self, action: #selector(setTransactionAmountTwenty), for: .touchUpInside)
+        thirtyButton.addTarget(self, action: #selector(setTransactionAmountThirty), for: .touchUpInside)
+        fiftyButton.addTarget(self, action: #selector(setTransactionAmountFifty), for: .touchUpInside)
+        
+        popupView.addSubview(tenButton)
+        popupView.addSubview(twentyButton)
+        popupView.addSubview(thirtyButton)
+        popupView.addSubview(fiftyButton)
+        popupView.layer.addSublayer(tenButtonBackground)
+        popupView.layer.addSublayer(twentyButtonBackground)
+        popupView.layer.addSublayer(thirtyButtonBackground)
+        popupView.layer.addSublayer(fiftyButtonBackground)
+    }
+    
+    @objc func initTransactionView() {
+        let destinationView = view
+        
+        popupView.frame = CGRect(x: 0, y: UIScreen.main.bounds.maxY + 40, width: UIScreen.main.bounds.width*0.5 - 9, height: UIScreen.main.bounds.height * 0.653)
+        popupView.backgroundColor = .white
+        
+        popupView.layer.zPosition = 7
+        
+        popupView.layer.cornerRadius = 30
+        
+        popupView.layer.shadowColor = UIColor.black.cgColor
+        popupView.layer.shadowOpacity = 0.5
+        popupView.layer.shadowRadius = 80.0
+        
+        let transactionsTitleLabel = UILabel()
+        transactionsTitleLabel.frame = CGRect(x: 0, y: 10, width: UIScreen.main.bounds.width*0.5, height: 20)
+        transactionsTitleLabel.text = "Create Transaction"
+        transactionsTitleLabel.textColor = #colorLiteral(red: 0.8235294118, green: 0.8392156863, blue: 0.8509803922, alpha: 1)
+        transactionsTitleLabel.textAlignment = .center
+        transactionsTitleLabel.font = UIFont(name: "Avenir-Heavy", size: 20)
+        transactionsTitleLabel.layer.opacity = 1
+        
+        transactionsTitleLabel.layer.zPosition = 8
+        
+        transactionAmountLabel.frame = CGRect(x: 0, y: 300, width: UIScreen.main.bounds.width*0.5, height: 40)
+        transactionAmountLabel.text = "\(newTransactionAmount) SXC"
+        transactionAmountLabel.font = UIFont(name: "Avenir-Heavy", size: 50)
+        transactionAmountLabel.textAlignment = .center
+        transactionAmountLabel.layer.opacity = 1
+        transactionAmountLabel.textColor = UIColor(red:1.00, green:0.46, blue:0.46, alpha:0.7)
+        transactionAmountLabel.layer.zPosition = 9
+        
+        
         let doneButton = UIButton()
         doneButton.frame = CGRect(x: 0, y: UIScreen.main.bounds.height*0.653 - 80, width: UIScreen.main.bounds.width * 0.5, height: 35)
         doneButton.setTitle("Done", for: .normal)
@@ -268,15 +296,9 @@ class MyViewController : UIViewController, UITextFieldDelegate {
         
         doneButton.layer.zPosition = 8
         
-        tenButton.addTarget(self, action: #selector(setTransactionAmountTen), for: .touchUpInside)
-        twentyButton.addTarget(self, action: #selector(setTransactionAmountTwenty), for: .touchUpInside)
-        thirtyButton.addTarget(self, action: #selector(setTransactionAmountThirty), for: .touchUpInside)
-        fiftyButton.addTarget(self, action: #selector(setTransactionAmountFifty), for: .touchUpInside)
-        
         doneButton.addTarget(self, action: #selector(createTransaction), for: .touchUpInside)
         
-        let doneButtonBackground =  CAGradientLayer()
-        doneButtonBackground.frame = CGRect(x: tenButtonBackground.frame.minX, y: UIScreen.main.bounds.height*0.653 - 80, width: UIScreen.main.bounds.width*0.5 - tenButtonBackground.frame.minX*4, height: 35)
+        doneButtonBackground.frame = CGRect(x: tenButtonBackground.frame.minX + 5, y: UIScreen.main.bounds.height*0.653 - 80, width: fiftyButton.frame.maxX - tenButton.frame.minX, height: 35)
         
         doneButtonBackground.colors = [color4, color3]
         doneButtonBackground.locations = [0.0, 1.5]
@@ -337,16 +359,8 @@ class MyViewController : UIViewController, UITextFieldDelegate {
         popupView.addSubview(closeButton)
         popupView.addSubview(addressTextField)
         popupView.addSubview(avaliableWalletAddressesTitle)
-        popupView.addSubview(tenButton)
-        popupView.addSubview(twentyButton)
-        popupView.addSubview(thirtyButton)
-        popupView.addSubview(fiftyButton)
-        popupView.addSubview(doneButton)
         popupView.addSubview(transactionAmountLabel)
-        popupView.layer.addSublayer(tenButtonBackground)
-        popupView.layer.addSublayer(twentyButtonBackground)
-        popupView.layer.addSublayer(thirtyButtonBackground)
-        popupView.layer.addSublayer(fiftyButtonBackground)
+        popupView.addSubview(doneButton)
         popupView.layer.addSublayer(doneButtonBackground)
         
         addNetworkLabels(popupViewDest: popupView)
@@ -354,6 +368,8 @@ class MyViewController : UIViewController, UITextFieldDelegate {
 
     @objc func bringPopupViewToForeground() {
         newTransactionAmount = 0
+        self.popupView.removeFromSuperview()
+        initTransactionView()
         UIView.animate(withDuration: 0.4, animations: {
             self.popupView.frame.origin.y = 30
         }, completion: nil)
@@ -361,6 +377,7 @@ class MyViewController : UIViewController, UITextFieldDelegate {
 
     @objc func createTransaction() {
         newTransaction = block(index: coinChain.chain.count, dateCreated: "2/12/2018", amountTransfered: newTransactionAmount, previousHash: coinChain.chain[coinChain.chain.count - 1].hash, destAddress: addressTextField.text!, sendingAddress: sessionWallet.walletAddress)
+        print("donebuttonTapped")
         if addressTextField.text! != "" {
             if Double(newTransactionAmount) <= sessionWallet.balance {
                 if addressTextField.text! != sessionWallet.walletAddress {
@@ -459,7 +476,6 @@ class MyViewController : UIViewController, UITextFieldDelegate {
         
         print("refreshing UI")
         
-        let plusAddButton = UIButton()
         plusAddButton.frame = CGRect(x: 90, y: destView.frame.maxY - 65, width: 40, height: 40)
         plusAddButton.center.x = destView.center.x
         plusAddButton.backgroundColor = UIColor(red:0.96, green:0.31, blue:0.64, alpha:1.0)
@@ -470,7 +486,7 @@ class MyViewController : UIViewController, UITextFieldDelegate {
         plusAddButton.layer.cornerRadius = plusAddButton.frame.width/2
         plusAddButton.layer.zPosition = 6
         plusAddButton.layer.shadowColor = UIColor.black.cgColor
-        plusAddButton.layer.shadowOpacity = 0.25
+        plusAddButton.layer.shadowOpacity = 0.22
         plusAddButton.layer.shadowRadius = 15.0
         
         if coinChain.chain.count < 3 {
@@ -509,6 +525,49 @@ class MyViewController : UIViewController, UITextFieldDelegate {
             
             destView.addSubview(transactionCountText)
         } else {
+            var enumerator = 0
+            while enumerator != coinChain.chain.count {
+                if coinChain.chain[enumerator].destAddress == sessionWallet.walletAddress {
+                    let transactionDetailLabel = UILabel()
+                    let transactionAmountLabel = UILabel()
+                    transactionAmountLabel.text = "+ \(coinChain.chain[enumerator].amountTransfered) SXC"
+                    transactionAmountLabel.frame = CGRect(x: 400, y: Int(transactionsTitleLabel.frame.maxY) + 150 + Int(35*enumerator), width: Int(UIScreen.main.bounds.width*0.5 * 0.3), height: 30)
+                    transactionAmountLabel.font = UIFont(name: "Avenir", size: 12)
+                    transactionAmountLabel.textColor = UIColor.lightGray
+                    transactionAmountLabel.layer.zPosition = 6
+                    
+                    var sendingAddress = "Genesis Wallet"
+                    
+                    if coinChain.chain[enumerator].sendingAddress != "" {
+                        sendingAddress = coinChain.chain[enumerator].sendingAddress
+                    }
+                    
+                    transactionDetailLabel.frame = CGRect(x: 10, y: Int(transactionsTitleLabel.frame.maxY) + 150 + Int(35*enumerator), width: Int(UIScreen.main.bounds.width*0.5 * 0.7), height: 30)
+                    transactionDetailLabel.text = "Recieved \(coinChain.chain[enumerator].amountTransfered) SXC from \(sendingAddress)"
+                    transactionDetailLabel.font = UIFont(name: "Avenir", size: 12)
+                    transactionDetailLabel.textColor = UIColor.lightGray
+                    transactionDetailLabel.layer.zPosition = 6
+                    destView.addSubview(transactionAmountLabel)
+                    destView.addSubview(transactionDetailLabel)
+                } else if coinChain.chain[enumerator].sendingAddress == sessionWallet.walletAddress {
+                    let transactionDetailLabel = UILabel()
+                    let transactionAmountLabel = UILabel()
+                    transactionAmountLabel.text = "- \(coinChain.chain[enumerator].amountTransfered) SXC"
+                    transactionAmountLabel.frame = CGRect(x: 400, y: Int(transactionsTitleLabel.frame.maxY) + 150 + Int(35*enumerator), width: Int(UIScreen.main.bounds.width*0.5 * 0.3), height: 30)
+                    transactionAmountLabel.font = UIFont(name: "Avenir", size: 12)
+                    transactionAmountLabel.textColor = UIColor.lightGray
+                    transactionAmountLabel.layer.zPosition = 6
+                    transactionDetailLabel.frame = CGRect(x: 10, y: Int(transactionsTitleLabel.frame.maxY) + 150 + Int(35*enumerator), width: Int(UIScreen.main.bounds.width*0.5 * 0.7), height: 30)
+                    transactionDetailLabel.font = UIFont(name: "Avenir", size: 12)
+                    transactionDetailLabel.text = "Sent \(coinChain.chain[enumerator].amountTransfered) SXC to \(coinChain.chain[enumerator].destAddress)"
+                    transactionDetailLabel.textColor = UIColor.lightGray
+                    transactionDetailLabel.layer.zPosition = 6
+                    destView.addSubview(transactionDetailLabel)
+                    destView.addSubview(transactionAmountLabel)
+                }
+                enumerator+=1
+            }
+            
             addButtonButton.removeFromSuperlayer()
             addButton.removeFromSuperview()
             transactionCountText.removeFromSuperview()
